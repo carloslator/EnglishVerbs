@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Essential Verbs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+      
+      body {
+        font-family: 'VT323', monospace;
+        background-color: #9D7BC3; /* New Light Purple Background */
+        background-image: 
+          linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+        color: #0f172a; /* Slate 900 text by default for contrast */
+      }
+
+      /* Retro pixel-perfect classes */
+      .font-retro {
+        font-family: 'Press Start 2P', cursive;
+      }
+      
+      .font-console {
+        font-family: 'VT323', monospace;
+      }
+
+      .retro-shadow {
+        box-shadow: 4px 4px 0px 0px #000000;
+      }
+      
+      .retro-shadow-sm {
+        box-shadow: 2px 2px 0px 0px #000000;
+      }
+
+      .animate-blink {
+        animation: blink 1s step-end infinite;
+      }
+
+      .text-shadow-neon {
+        text-shadow: 2px 2px 0px #000000;
+      }
+
+      @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-[#9D7BC3] text-slate-900">
+    <div id="root"></div>
+  </body>
+</html>
