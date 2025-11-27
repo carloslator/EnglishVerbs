@@ -1,67 +1,676 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Essential Verbs</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
-      
-      body {
-        font-family: 'VT323', monospace;
-        background-color: #9D7BC3; /* New Light Purple Background */
-        background-image: 
-          linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-        background-size: 20px 20px;
-        color: #0f172a; /* Slate 900 text by default for contrast */
-      }
-
-      /* Retro pixel-perfect classes */
-      .font-retro {
-        font-family: 'Press Start 2P', cursive;
-      }
-      
-      .font-console {
-        font-family: 'VT323', monospace;
-      }
-
-      .retro-shadow {
-        box-shadow: 4px 4px 0px 0px #000000;
-      }
-      
-      .retro-shadow-sm {
-        box-shadow: 2px 2px 0px 0px #000000;
-      }
-
-      .animate-blink {
-        animation: blink 1s step-end infinite;
-      }
-
-      .text-shadow-neon {
-        text-shadow: 2px 2px 0px #000000;
-      }
-
-      @keyframes blink {
-        0% { opacity: 1; }
-        50% { opacity: 0; }
-        100% { opacity: 1; }
-      }
-    </style>
-  <script type="importmap">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (Vanilla Version) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Import Map for Google GenAI -->
+    <script type="importmap">
 {
   "imports": {
+    "@google/genai": "https://esm.run/@google/genai",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0"
   }
 }
 </script>
+
+    <style>
+        :root {
+            --bg-color: #9D7BC3;
+            --text-color: #0f172a;
+        }
+        
+        body {
+            font-family: 'VT323', monospace;
+            background-color: var(--bg-color);
+            background-image: 
+              linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-color);
+            margin: 0;
+            user-select: none;
+        }
+
+        /* Retro Classes */
+        .font-retro { font-family: 'Press Start 2P', cursive; }
+        .font-console { font-family: 'VT323', monospace; }
+
+        .retro-shadow { box-shadow: 4px 4px 0px 0px #000000; }
+        .retro-shadow-sm { box-shadow: 2px 2px 0px 0px #000000; }
+        .text-shadow-neon { text-shadow: 2px 2px 0px #000000; }
+
+        .btn-retro {
+            border: 4px solid #000;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-family: 'VT323', monospace;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-retro:active { transform: translateY(4px); box-shadow: none; }
+        .btn-retro:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Animation */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .animate-blink { animation: blink 1s step-end infinite; }
+    </style>
 </head>
-  <body class="bg-[#9D7BC3] text-slate-900">
-    <div id="root"></div>
-  </body>
+<body class="bg-[#9D7BC3]">
+
+    <!-- Main App Container -->
+    <div id="app" class="max-w-lg mx-auto min-h-screen flex flex-col border-x-4 border-black bg-[#9D7BC3] relative">
+        <!-- Content injected by JS -->
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script type="module">
+        import { GoogleGenAI, Type } from "@google/genai";
+
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        
+        // ⚠️ IMPORTANTE: REEMPLAZA ESTO CON TU API KEY PARA FUNCIONES DE IA
+        const API_KEY = ''; 
+        
+        // ==========================================
+        // DATA (CONSTANTS)
+        // ==========================================
+        const CATEGORIES = {
+            GENERAL: "General Actions",
+            SPEAKING: "Communication",
+            EMOTIONS: "Thoughts & Emotions",
+            MOVEMENT: "Movement",
+            DAILY_LIFE: "Daily Life",
+            SHOPPING: "Shopping"
+        };
+
+        const ALL_VERBS = [
+            // General Actions (1-21)
+            { id: 1, english: "Add", spanish: "Añadir", category: CATEGORIES.GENERAL },
+            { id: 2, english: "Be", spanish: "Ser/Estar", category: CATEGORIES.GENERAL },
+            { id: 3, english: "Bring", spanish: "Traer", category: CATEGORIES.GENERAL },
+            { id: 4, english: "Can", spanish: "Poder", category: CATEGORIES.GENERAL },
+            { id: 5, english: "Change", spanish: "Cambiar", category: CATEGORIES.GENERAL },
+            { id: 6, english: "Come", spanish: "Venir", category: CATEGORIES.GENERAL },
+            { id: 7, english: "Do", spanish: "Hacer", category: CATEGORIES.GENERAL },
+            { id: 8, english: "Find", spanish: "Encontrar", category: CATEGORIES.GENERAL },
+            { id: 9, english: "Finish", spanish: "Terminar", category: CATEGORIES.GENERAL },
+            { id: 10, english: "Get", spanish: "Conseguir", category: CATEGORIES.GENERAL },
+            { id: 11, english: "Go", spanish: "Ir", category: CATEGORIES.GENERAL },
+            { id: 12, english: "Give", spanish: "Dar", category: CATEGORIES.GENERAL },
+            { id: 13, english: "Have", spanish: "Tener", category: CATEGORIES.GENERAL },
+            { id: 14, english: "Happen", spanish: "Suceder", category: CATEGORIES.GENERAL },
+            { id: 15, english: "Make", spanish: "Hacer (Crear)", category: CATEGORIES.GENERAL },
+            { id: 16, english: "Meet", spanish: "Encontrar/Conocer", category: CATEGORIES.GENERAL },
+            { id: 17, english: "Start", spanish: "Empezar", category: CATEGORIES.GENERAL },
+            { id: 18, english: "Stop", spanish: "Parar", category: CATEGORIES.GENERAL },
+            { id: 19, english: "Take", spanish: "Tomar", category: CATEGORIES.GENERAL },
+            { id: 20, english: "Try", spanish: "Intentar", category: CATEGORIES.GENERAL },
+            { id: 21, english: "Use", spanish: "Usar", category: CATEGORIES.GENERAL },
+
+            // Speaking (22-31)
+            { id: 22, english: "Ask", spanish: "Preguntar", category: CATEGORIES.SPEAKING },
+            { id: 23, english: "Call", spanish: "Llamar", category: CATEGORIES.SPEAKING },
+            { id: 24, english: "Explain", spanish: "Explicar", category: CATEGORIES.SPEAKING },
+            { id: 25, english: "Listen", spanish: "Escuchar", category: CATEGORIES.SPEAKING },
+            { id: 26, english: "Lie", spanish: "Mentir", category: CATEGORIES.SPEAKING },
+            { id: 27, english: "Say", spanish: "Decir", category: CATEGORIES.SPEAKING },
+            { id: 28, english: "Speak", spanish: "Hablar", category: CATEGORIES.SPEAKING },
+            { id: 29, english: "Thank", spanish: "Agradecer", category: CATEGORIES.SPEAKING },
+            { id: 30, english: "Translate", spanish: "Traducir", category: CATEGORIES.SPEAKING },
+            { id: 31, english: "Understand", spanish: "Entender", category: CATEGORIES.SPEAKING },
+
+            // Thoughts & Emotions (32-54)
+            { id: 32, english: "Agree", spanish: "Estar de acuerdo", category: CATEGORIES.EMOTIONS },
+            { id: 33, english: "Accept", spanish: "Aceptar", category: CATEGORIES.EMOTIONS },
+            { id: 34, english: "Believe", spanish: "Creer", category: CATEGORIES.EMOTIONS },
+            { id: 35, english: "Belong", spanish: "Pertenecer", category: CATEGORIES.EMOTIONS },
+            { id: 36, english: "Cry", spanish: "Llorar", category: CATEGORIES.EMOTIONS },
+            { id: 37, english: "Decide", spanish: "Decidir", category: CATEGORIES.EMOTIONS },
+            { id: 38, english: "Dream", spanish: "Soñar", category: CATEGORIES.EMOTIONS },
+            { id: 39, english: "Enjoy", spanish: "Disfrutar", category: CATEGORIES.EMOTIONS },
+            { id: 40, english: "Feel", spanish: "Sentir", category: CATEGORIES.EMOTIONS },
+            { id: 41, english: "Forget", spanish: "Olvidar", category: CATEGORIES.EMOTIONS },
+            { id: 42, english: "Guess", spanish: "Adivinar", category: CATEGORIES.EMOTIONS },
+            { id: 43, english: "Hate", spanish: "Odiar", category: CATEGORIES.EMOTIONS },
+            { id: 44, english: "Imagine", spanish: "Imaginar", category: CATEGORIES.EMOTIONS },
+            { id: 45, english: "Know", spanish: "Saber/Conocer", category: CATEGORIES.EMOTIONS },
+            { id: 46, english: "Laugh", spanish: "Reír", category: CATEGORIES.EMOTIONS },
+            { id: 47, english: "Like", spanish: "Gustar", category: CATEGORIES.EMOTIONS },
+            { id: 48, english: "Love", spanish: "Amar", category: CATEGORIES.EMOTIONS },
+            { id: 49, english: "Need", spanish: "Necesitar", category: CATEGORIES.EMOTIONS },
+            { id: 50, english: "Remember", spanish: "Recordar", category: CATEGORIES.EMOTIONS },
+            { id: 51, english: "Smile", spanish: "Sonreír", category: CATEGORIES.EMOTIONS },
+            { id: 52, english: "Think", spanish: "Pensar", category: CATEGORIES.EMOTIONS },
+            { id: 53, english: "Want", spanish: "Querer", category: CATEGORIES.EMOTIONS },
+            { id: 54, english: "Worry", spanish: "Preocuparse", category: CATEGORIES.EMOTIONS },
+
+            // Movement (55-68)
+            { id: 55, english: "Close", spanish: "Cerrar", category: CATEGORIES.MOVEMENT },
+            { id: 56, english: "Dance", spanish: "Bailar", category: CATEGORIES.MOVEMENT },
+            { id: 57, english: "Drive", spanish: "Conducir", category: CATEGORIES.MOVEMENT },
+            { id: 59, english: "Move", spanish: "Mover", category: CATEGORIES.MOVEMENT },
+            { id: 60, english: "Open", spanish: "Abrir", category: CATEGORIES.MOVEMENT },
+            { id: 61, english: "Pull", spanish: "Tirar", category: CATEGORIES.MOVEMENT },
+            { id: 62, english: "Push", spanish: "Empujar", category: CATEGORIES.MOVEMENT },
+            { id: 63, english: "Play", spanish: "Jugar", category: CATEGORIES.MOVEMENT },
+            { id: 64, english: "Run", spanish: "Correr", category: CATEGORIES.MOVEMENT },
+            { id: 65, english: "Swim", spanish: "Nadar", category: CATEGORIES.MOVEMENT },
+            { id: 66, english: "Travel", spanish: "Viajar", category: CATEGORIES.MOVEMENT },
+            { id: 67, english: "Visit", spanish: "Visitar", category: CATEGORIES.MOVEMENT },
+            { id: 68, english: "Walk", spanish: "Caminar", category: CATEGORIES.MOVEMENT },
+
+            // Daily Life (69-95)
+            { id: 69, english: "Break", spanish: "Romper", category: CATEGORIES.DAILY_LIFE },
+            { id: 70, english: "Clean", spanish: "Limpiar", category: CATEGORIES.DAILY_LIFE },
+            { id: 71, english: "Cook", spanish: "Cocinar", category: CATEGORIES.DAILY_LIFE },
+            { id: 72, english: "Copy", spanish: "Copiar", category: CATEGORIES.DAILY_LIFE },
+            { id: 73, english: "Compare", spanish: "Comparar", category: CATEGORIES.DAILY_LIFE },
+            { id: 74, english: "Die", spanish: "Morir", category: CATEGORIES.DAILY_LIFE },
+            { id: 75, english: "Discover", spanish: "Descubrir", category: CATEGORIES.DAILY_LIFE },
+            { id: 76, english: "Drink", spanish: "Beber", category: CATEGORIES.DAILY_LIFE },
+            { id: 77, english: "Dry", spanish: "Secar", category: CATEGORIES.DAILY_LIFE },
+            { id: 78, english: "Eat", spanish: "Comer", category: CATEGORIES.DAILY_LIFE },
+            { id: 79, english: "Help", spanish: "Ayudar", category: CATEGORIES.DAILY_LIFE },
+            { id: 80, english: "Include", spanish: "Incluir", category: CATEGORIES.DAILY_LIFE },
+            { id: 81, english: "Kill", spanish: "Matar", category: CATEGORIES.DAILY_LIFE },
+            { id: 82, english: "Kiss", spanish: "Besar", category: CATEGORIES.DAILY_LIFE },
+            { id: 83, english: "Learn", spanish: "Aprender", category: CATEGORIES.DAILY_LIFE },
+            { id: 84, english: "Live", spanish: "Vivir", category: CATEGORIES.DAILY_LIFE },
+            { id: 85, english: "Look", spanish: "Mirar", category: CATEGORIES.DAILY_LIFE },
+            { id: 86, english: "Read", spanish: "Leer", category: CATEGORIES.DAILY_LIFE },
+            { id: 87, english: "See", spanish: "Ver", category: CATEGORIES.DAILY_LIFE },
+            { id: 88, english: "Sing", spanish: "Cantar", category: CATEGORIES.DAILY_LIFE },
+            { id: 89, english: "Sleep", spanish: "Dormir", category: CATEGORIES.DAILY_LIFE },
+            { id: 90, english: "Teach", spanish: "Enseñar", category: CATEGORIES.DAILY_LIFE },
+            { id: 91, english: "Touch", spanish: "Tocar", category: CATEGORIES.DAILY_LIFE },
+            { id: 92, english: "Wait", spanish: "Esperar", category: CATEGORIES.DAILY_LIFE },
+            { id: 93, english: "Wash", spanish: "Lavar", category: CATEGORIES.DAILY_LIFE },
+            { id: 94, english: "Work", spanish: "Trabajar", category: CATEGORIES.DAILY_LIFE },
+            { id: 95, english: "Write", spanish: "Escribir", category: CATEGORIES.DAILY_LIFE },
+
+            // Shopping (96-100)
+            { id: 96, english: "Cost", spanish: "Costar", category: CATEGORIES.SHOPPING },
+            { id: 97, english: "Buy", spanish: "Comprar", category: CATEGORIES.SHOPPING },
+            { id: 98, english: "Pay", spanish: "Pagar", category: CATEGORIES.SHOPPING },
+            { id: 99, english: "Save", spanish: "Ahorrar", category: CATEGORIES.SHOPPING },
+            { id: 100, english: "Sell", spanish: "Vender", category: CATEGORIES.SHOPPING }
+        ];
+
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        const state = {
+            screen: 'DASHBOARD', // DASHBOARD, GAME, RESULT
+            xp: 0,
+            hearts: 3,
+            sessionQuestions: [],
+            currentQuestionIndex: 0,
+            selectedOption: null,
+            isAnswerChecked: false,
+            isCorrect: false,
+            sessionXP: 0,
+            currentCategory: null
+        };
+
+        // ==========================================
+        // AUDIO & UTILS
+        // ==========================================
+        function playRetroSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+
+                switch (type) {
+                    case 'click':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.08);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+                    case 'start':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                    case 'correct':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(440, now); 
+                        osc.frequency.setValueAtTime(554.37, now + 0.1);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.linearRampToValueAtTime(0.1, now + 0.1);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                        osc.start(now);
+                        osc.stop(now + 0.4);
+                        break;
+                    case 'wrong':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                }
+            } catch (e) {
+                console.error("Audio error", e);
+            }
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ==========================================
+        // GEMINI SERVICE
+        // ==========================================
+        const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+
+        async function generateContextQuestion(verb) {
+            if (!ai) return null;
+            try {
+                const model = "gemini-2.5-flash";
+                const prompt = `
+                  Create a "Fill in the blank" quiz question for the English verb "${verb.english}" (Spanish: ${verb.spanish}).
+                  The sentence should be simple, suitable for a beginner student.
+                  The blank should represent where the verb "${verb.english}" (or its conjugation) goes.
+                  Provide 3 incorrect options (distractors) that are also English verbs.
+                  Return JSON.
+                `;
+
+                const response = await ai.models.generateContent({
+                  model,
+                  contents: prompt,
+                  config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                      type: Type.OBJECT,
+                      properties: {
+                        sentence: { type: Type.STRING },
+                        correctOption: { type: Type.STRING },
+                        distractors: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        explanation: { type: Type.STRING }
+                      },
+                      required: ["sentence", "correctOption", "distractors", "explanation"]
+                    }
+                  }
+                });
+                
+                const data = JSON.parse(response.text || "{}");
+                if (!data.sentence) return null;
+
+                const options = [...data.distractors, data.correctOption].sort(() => Math.random() - 0.5);
+                return {
+                    type: "FILL_BLANK",
+                    verb: verb,
+                    questionText: data.sentence,
+                    options: options,
+                    correctAnswer: data.correctOption,
+                    explanation: data.explanation
+                };
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return null;
+            }
+        }
+
+        // ==========================================
+        // GAME LOGIC
+        // ==========================================
+        function getRandomDistractors(correctVerb, allVerbs, count, lang) {
+            const others = allVerbs.filter(v => v.id !== correctVerb.id);
+            const shuffled = others.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count).map(v => v[lang]);
+        }
+
+        window.startLevel = async (categoryKey) => {
+            playRetroSound('start');
+            const categoryName = CATEGORIES[categoryKey];
+            const categoryVerbs = ALL_VERBS.filter(v => v.category === categoryName);
+            const sessionVerbs = categoryVerbs.sort(() => 0.5 - Math.random()).slice(0, 5);
+            
+            const questions = [];
+
+            // Generate basic questions
+            for (const verb of sessionVerbs) {
+                // To Spanish
+                const spDistractors = getRandomDistractors(verb, ALL_VERBS, 3, 'spanish');
+                questions.push({
+                    type: "TRANSLATE_TO_SPANISH",
+                    verb,
+                    questionText: `TRANSLATE: "${verb.english}"`,
+                    options: [...spDistractors, verb.spanish].sort(() => 0.5 - Math.random()),
+                    correctAnswer: verb.spanish
+                });
+
+                // To English
+                const enDistractors = getRandomDistractors(verb, ALL_VERBS, 3, 'english');
+                questions.push({
+                    type: "TRANSLATE_TO_ENGLISH",
+                    verb,
+                    questionText: `ENGLISH FOR: "${verb.spanish}"`,
+                    options: [...enDistractors, verb.english].sort(() => 0.5 - Math.random()),
+                    correctAnswer: verb.english
+                });
+            }
+
+            // Attempt AI questions
+            if (ai) {
+                try {
+                    const aiQ = await generateContextQuestion(sessionVerbs[0]);
+                    if (aiQ) questions.push(aiQ);
+                } catch(e) {}
+            }
+
+            state.sessionQuestions = questions.sort(() => 0.5 - Math.random());
+            state.currentQuestionIndex = 0;
+            state.sessionXP = 0;
+            state.hearts = 3;
+            state.currentCategory = categoryName;
+            state.screen = 'GAME';
+            state.selectedOption = null;
+            state.isAnswerChecked = false;
+            
+            render();
+        };
+
+        window.handleOptionSelect = (option) => {
+            if (state.isAnswerChecked) return;
+            playRetroSound('click');
+            state.selectedOption = option;
+            
+            const currentQ = state.sessionQuestions[state.currentQuestionIndex];
+            if (currentQ.type === "TRANSLATE_TO_ENGLISH" || currentQ.type === "FILL_BLANK") {
+                if (option === currentQ.correctAnswer || currentQ.options.includes(option)) {
+                     speak(option);
+                }
+            }
+            render();
+        };
+
+        window.checkAnswer = () => {
+            if (!state.selectedOption) return;
+            
+            const currentQ = state.sessionQuestions[state.currentQuestionIndex];
+            const correct = state.selectedOption === currentQ.correctAnswer;
+            
+            state.isCorrect = correct;
+            state.isAnswerChecked = true;
+
+            if (correct) {
+                playRetroSound('correct');
+                state.sessionXP += 10;
+            } else {
+                playRetroSound('wrong');
+                state.hearts = Math.max(0, state.hearts - 1);
+            }
+            render();
+        };
+
+        window.nextQuestion = () => {
+            playRetroSound('click');
+            if (state.hearts === 0) {
+                state.screen = 'RESULT';
+                render();
+                return;
+            }
+
+            if (state.currentQuestionIndex < state.sessionQuestions.length - 1) {
+                state.currentQuestionIndex++;
+                state.selectedOption = null;
+                state.isAnswerChecked = false;
+                state.isCorrect = false;
+                render();
+            } else {
+                state.xp += state.sessionXP;
+                state.screen = 'RESULT';
+                playRetroSound('correct');
+                render();
+            }
+        };
+
+        window.returnToDashboard = () => {
+            playRetroSound('click');
+            state.screen = 'DASHBOARD';
+            render();
+        };
+
+        window.playSpeak = (text) => {
+            playRetroSound('click');
+            speak(text);
+        };
+
+        // ==========================================
+        // UI RENDERING
+        // ==========================================
+        
+        function renderDashboard() {
+            let cardsHtml = '';
+            Object.keys(CATEGORIES).forEach((key, index) => {
+                const catName = CATEGORIES[key];
+                // Simple color logic
+                const colors = ["bg-cyan-500", "bg-blue-500", "bg-purple-500", "bg-indigo-500", "bg-pink-500", "bg-fuchsia-500"];
+                const color = colors[index % colors.length];
+
+                cardsHtml += `
+                <div onclick="startLevel('${key}')" class="relative w-full max-w-sm mx-auto mb-6 cursor-pointer hover:-translate-y-1 transition-transform">
+                    <div class="bg-slate-800 border-4 border-black retro-shadow p-4 flex items-center space-x-4">
+                        <div class="w-16 h-16 shrink-0 flex items-center justify-center text-black border-2 border-black ${color}">
+                            <i data-lucide="book" class="w-8 h-8"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-retro text-xs md:text-sm text-cyan-300 uppercase mb-2 leading-tight">${catName}</div>
+                            <div class="w-full h-4 border-2 border-black bg-slate-900 relative">
+                               <div class="h-full ${color}" style="width: ${index === 0 ? 50 : 0}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            return `
+            <div class="flex flex-col h-full">
+                <div class="bg-indigo-900 p-4 border-b-4 border-black flex justify-between items-center sticky top-0 z-20 shadow-lg">
+                    <div class="flex items-center space-x-2 bg-black/40 px-3 py-1 border border-indigo-700">
+                       <span class="text-yellow-400">★</span>
+                       <span class="font-retro text-yellow-400 text-xs">${state.xp} XP</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="font-retro text-cyan-400 text-xs tracking-widest text-shadow-neon">ESSENTIAL</span>
+                        <span class="font-retro text-white text-lg tracking-tighter text-shadow-neon">VERBS</span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-black/40 px-3 py-1 border border-red-900">
+                       <span class="text-red-500 text-lg">♥</span>
+                       <span class="font-retro text-red-500 text-xs">${state.hearts}</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-6">
+                    <div class="text-center mb-10 mt-4">
+                      <div class="inline-block bg-slate-800 border-2 border-black p-4 retro-shadow">
+                        <h1 className="text-2xl font-retro text-cyan-400 mb-2">SELECT ZONE</h1>
+                        <p class="font-console text-xl text-slate-300">Level: Beginner</p>
+                      </div>
+                    </div>
+                    ${cardsHtml}
+                </div>
+            </div>`;
+        }
+
+        function renderGame() {
+            const currentQ = state.sessionQuestions[state.currentQuestionIndex];
+            const progress = ((state.currentQuestionIndex) / state.sessionQuestions.length) * 100;
+            
+            // Hearts
+            let heartsHtml = '';
+            for(let i=0; i<3; i++) {
+                heartsHtml += `<span class="${i < state.hearts ? 'text-red-500' : 'text-indigo-950'} text-2xl">♥</span>`;
+            }
+
+            // Options
+            let optionsHtml = '';
+            currentQ.options.forEach((opt, idx) => {
+                const isSelected = state.selectedOption === opt;
+                const isCorrectOpt = opt === currentQ.correctAnswer;
+                
+                let btnStyle = "bg-slate-800 border-black text-slate-300 hover:bg-slate-700 hover:text-cyan-400";
+                
+                if (isSelected && !state.isAnswerChecked) {
+                    btnStyle = "bg-indigo-600 border-black text-white retro-shadow-sm";
+                }
+                
+                if (state.isAnswerChecked) {
+                    if (isCorrectOpt) btnStyle = "bg-green-600 border-black text-white";
+                    else if (isSelected && !isCorrectOpt) btnStyle = "bg-red-600 border-black text-white";
+                    else btnStyle = "opacity-40 bg-slate-800 border-black";
+                }
+
+                optionsHtml += `
+                    <button onclick="handleOptionSelect('${opt.replace(/'/g, "\\'")}')" 
+                        ${state.isAnswerChecked ? 'disabled' : ''}
+                        class="p-4 border-4 text-2xl text-left transition-all font-console relative ${btnStyle}">
+                        <span class="mr-4 text-sm font-retro opacity-50">${idx + 1}.</span>
+                        ${opt}
+                    </button>
+                `;
+            });
+
+            // Action Button
+            let actionBtn = '';
+            if (!state.isAnswerChecked) {
+                actionBtn = `<button onclick="checkAnswer()" ${!state.selectedOption ? 'disabled' : ''} class="btn-retro w-full py-3 bg-purple-600 text-white hover:bg-purple-500 retro-shadow">EXECUTE</button>`;
+            } else {
+                actionBtn = `<button onclick="nextQuestion()" class="btn-retro w-full py-3 ${state.isCorrect ? 'bg-cyan-400 text-black' : 'bg-pink-600 text-white'} retro-shadow">NEXT LEVEL ></button>`;
+            }
+
+            // Feedback
+            let feedback = '';
+            if (state.isAnswerChecked) {
+                feedback = `
+                 <div class="mb-6 flex items-start space-x-4">
+                   <div class="p-2 border-2 border-black ${state.isCorrect ? 'bg-green-500' : 'bg-red-500'} retro-shadow-sm w-10 h-10 flex items-center justify-center font-bold text-xl">
+                     ${state.isCorrect ? '✓' : 'X'}
+                   </div>
+                   <div class="bg-slate-800 border-2 border-black p-3 flex-1">
+                     <h3 class="font-retro text-sm ${state.isCorrect ? 'text-green-400' : 'text-red-400'}">
+                       ${state.isCorrect ? 'EXCELLENT!' : 'SYSTEM ERROR'}
+                     </h3>
+                     ${!state.isCorrect ? `<p class="text-red-300 text-xl mt-1">Correct: <span class="text-white">${currentQ.correctAnswer}</span></p>` : ''}
+                     ${currentQ.explanation ? `<div class="mt-2 text-lg text-slate-300 font-console border-t border-slate-600 pt-2">> ${currentQ.explanation}</div>` : ''}
+                   </div>
+                 </div>`;
+            }
+
+            return `
+            <div class="flex flex-col h-full font-console">
+                <div class="p-4 bg-indigo-900 border-b-4 border-black">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="returnToDashboard()" class="text-indigo-200 hover:text-white font-retro text-xs uppercase hover:underline">&lt; EXIT</button>
+                        <div class="flex items-center space-x-1">${heartsHtml}</div>
+                    </div>
+                    <div class="w-full h-6 border-2 border-black bg-slate-900 relative">
+                        <div class="h-full bg-cyan-500 transition-all duration-300" style="width: ${progress}%"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-xs text-white mix-blend-difference font-retro">${Math.round(progress)}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-6 flex flex-col justify-center relative">
+                    <div class="mb-8 border-4 border-black bg-slate-800 p-6 retro-shadow relative">
+                        <div class="absolute -top-3 -left-3 bg-cyan-500 border-2 border-black px-2 py-1 font-retro text-[10px] text-black">QUERY</div>
+                        <h2 class="text-3xl md:text-4xl text-white mb-2 leading-none">${currentQ.questionText}</h2>
+                    </div>
+
+                    ${ (currentQ.type === 'TRANSLATE_TO_SPANISH' || currentQ.type === 'LISTENING') ? 
+                        `<div onclick="playSpeak('${currentQ.verb.english}')" class="self-start mb-8 cursor-pointer group">
+                             <div class="w-16 h-16 bg-indigo-600 border-4 border-black retro-shadow flex items-center justify-center group-hover:translate-y-1 transition-all text-white">
+                                <i data-lucide="volume-2"></i>
+                             </div>
+                         </div>` : ''
+                    }
+
+                    <div class="grid grid-cols-1 gap-4">
+                        ${optionsHtml}
+                    </div>
+                </div>
+
+                <div class="p-6 border-t-4 border-black ${state.isAnswerChecked ? (state.isCorrect ? 'bg-green-900/80' : 'bg-red-900/80') : 'bg-indigo-900/20'}">
+                    ${feedback}
+                    ${actionBtn}
+                </div>
+            </div>`;
+        }
+
+        function renderResult() {
+            return `
+            <div class="flex flex-col items-center justify-center p-8 text-center h-full relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px); background-size: 40px 40px"></div>
+                
+                <div class="relative z-10 mb-8 bg-slate-800 border-4 border-black p-6 retro-shadow">
+                    <h2 class="text-4xl md:text-5xl font-retro text-cyan-400 text-shadow-neon mb-4">MISSION<br/>REPORT</h2>
+                </div>
+
+                <div class="flex space-x-6 w-full justify-center mb-12 relative z-10">
+                    <div class="bg-slate-800 p-4 border-4 border-black retro-shadow w-36">
+                        <div class="text-yellow-500 font-retro text-[10px] mb-2">SCORE</div>
+                        <div class="text-yellow-400 font-console text-4xl">+${state.sessionXP}</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 border-4 border-black retro-shadow w-36">
+                        <div class="text-red-500 font-retro text-[10px] mb-2">LIVES</div>
+                        <div class="text-red-400 font-console text-4xl">${state.hearts}</div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-xs z-10">
+                    <button onclick="returnToDashboard()" class="btn-retro w-full py-3 bg-cyan-400 text-black hover:bg-cyan-300 retro-shadow">RETURN TO BASE</button>
+                </div>
+            </div>`;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (state.screen === 'DASHBOARD') app.innerHTML = renderDashboard();
+            else if (state.screen === 'GAME') app.innerHTML = renderGame();
+            else if (state.screen === 'RESULT') app.innerHTML = renderResult();
+
+            // Re-init icons after render
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // Initial Render
+        render();
+
+    </script>
+</body>
 </html>
