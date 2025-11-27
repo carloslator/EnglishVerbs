@@ -286,8 +286,22 @@
         }
 
         function speak(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
+            let speechText = text;
+            
+            // Fix for pronunciation of homographs (Verb vs Noun/Adjective)
+            // "Live" (/lɪv/ vs /laɪv/), "Close" (/kloʊz/ vs /kloʊs/), "Use" (/juːz/ vs /juːs/)
+            // Adding "To " context forces most TTS engines to use the verb pronunciation.
+            const homographs = ['live', 'close', 'use', 'read']; 
+            
+            if (homographs.includes(text.toLowerCase().trim())) {
+                speechText = "To " + text;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(speechText);
             utterance.lang = 'en-US';
+            
+            // Cancel previous speech to prevent overlapping if user clicks fast
+            window.speechSynthesis.cancel(); 
             window.speechSynthesis.speak(utterance);
         }
 
